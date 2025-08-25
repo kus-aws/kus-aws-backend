@@ -130,6 +130,66 @@ chmod +x scripts/build_lambda.sh
    - `prod`: `.../prod/health`
 5. CORS: 데모 `*`, 운영은 Amplify 도메인만 허용
 
+## 10분 배포 가이드(초보자용 Step-by-step)
+
+아래 절차는 콘솔에서 수동 배포(해커톤 규정 준수)를 가장 단순하게 정리한 것입니다.
+
+1) 로컬에서 헬스체크와 패키징 확인
+- 서버 실행(선택):
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+- 기대 응답:
+  - `GET http://localhost:8000/health` → `{ "status": "ok" }`
+  - `GET http://localhost:8000/api/v1/echo?q=hello` → `{ "echo": "hello" }`
+- 패키징(zip 생성):
+```bash
+chmod +x scripts/build_lambda.sh
+./scripts/build_lambda.sh
+```
+- 생성물 확인: 리포지토리 루트에 `lambda.zip`(의존성 + `app/` 포함)
+
+2) Lambda 함수 만들기(us-east-1)
+- 콘솔 → Lambda → Create function → Author from scratch
+- Name: `kus-aws-backend`
+- Runtime: `Python 3.10`
+- Architecture: `x86_64`
+- Permissions: 기존 역할 선택 → `SafeRoleForUser-{username}`
+- Create function 클릭
+
+3) 코드 업로드 및 핸들러 설정
+- Code → Upload from → `.zip file` → `lambda.zip` 업로드 → Save
+- Runtime settings → Edit
+  - Handler: `app.main.handler`
+- Deploy 클릭
+
+4) 환경 변수 설정(CORS 운영 제한)
+- Configuration → Environment variables → Edit → Add environment variable
+  - Key: `ALLOWED_ORIGINS`, Value: `https://<your-amplify-domain>`
+  - (옵션) `ALLOWED_METHODS`, `ALLOWED_HEADERS` 필요 시 추가
+- Save → Deploy(필요 시 다시)
+
+5) API Gateway(HTTP API) 연결
+- Add trigger → API Gateway → Create an API → HTTP API → Security: Open(데모)
+- 라우트 자동 연결 확인(`/health`, `/api/v1/echo`)
+- CORS는 API Gateway에서도 기본값 사용(데모). 운영 시 허용 오리진을 Amplify 도메인으로 제한
+
+6) 원격 헬스체크(스테이지 주의)
+- Invoke URL 예:
+  - `$default`: `https://<api-id>.execute-api.us-east-1.amazonaws.com/health`
+  - `prod`: `https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/health`
+- 정상 응답 확인 후, 동일 방식으로 `/api/v1/echo?q=hello` 체크
+
+### 자주 발생하는 문제(Troubleshooting)
+- 403/401 발생: API Gateway Security 설정이 Open인지 확인, 또는 인증 구성이 필요한지 점검
+- 500/502 발생: Lambda CloudWatch Logs에서 스택트레이스 확인, 핸들러가 `app.main.handler`인지 재확인
+- CORS 오류: 브라우저 콘솔에서 CORS 에러 문구 확인 후, Lambda의 `ALLOWED_ORIGINS`와 API Gateway CORS 허용 오리진 동기화
+- 경로 404: 스테이지 접두 확인(`$default`는 없음, `prod`는 `/prod`)
+
+### 규정 관련 메모
+- 해커톤 규정상 자동 배포 금지 → GitHub Actions는 테스트/빌드(아티팩트 업로드)까지만 수행
+- 비밀정보는 코드에 포함 금지 → 환경 변수 혹은 AWS Systems Manager Parameter Store/Secrets Manager 사용
+
 ## 진행 상황
 - FastAPI + Mangum 핸들러 노출(`app.main.handler`)
 - `GET /health` JSON 응답: `{ "status":"ok" }`
