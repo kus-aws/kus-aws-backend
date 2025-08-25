@@ -105,8 +105,12 @@ chmod +x scripts/build_lambda.sh
 
 ### 보안/운영 메모
 - Mangum 핸들러: `handler = Mangum(app)`
-- 현재 CORS는 데모 목적상 `*` 허용. 운영 환경에서는 제한 필요.
+- CORS: 데모는 `*` 허용. 운영/스테이징에서는 환경 변수 `ALLOWED_ORIGINS` 사용(쉼표 구분, 예: `https://a.com,https://b.com`).
 - 비밀정보는 코드에 포함하지 말고, 환경 변수/Parameter Store/Secrets Manager를 사용하세요.
+
+## CI (옵션)
+- GitHub Actions 수동 실행(`workflow_dispatch`): `.github/workflows/build-lambda.yml`
+- 작업: Python 3.10 설정 → `scripts/build_lambda.sh` 실행 → `lambda.zip` 아티팩트 업로드
 
 ## 진행 상황
 - FastAPI 앱에 Mangum 핸들러 노출(`app.main.handler`)
