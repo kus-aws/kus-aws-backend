@@ -116,24 +116,24 @@ chmod +x scripts/build_lambda.sh
 - 작업: Python 3.10 설정 → `scripts/build_lambda.sh` 실행 → `lambda.zip` 아티팩트 업로드
 
 ## 진행 상황
-- FastAPI 앱에 Mangum 핸들러 노출(`app.main.handler`)
-- `GET /health` JSON 응답으로 변경: `{ "status":"ok" }`
-- `requirements.txt`에 `mangum` 추가 및 정렬
-- Lambda 패키징 스크립트 추가: `scripts/build_lambda.sh`
-- Lambda 배포 가이드 본문에 통합(`README_LAMBDA.md` → `README.md`)
+- FastAPI + Mangum 핸들러 노출(`app.main.handler`)
+- `GET /health` JSON 응답: `{ "status":"ok" }`
+- `requirements.txt` 정리(`mangum` 포함)
+- 패키징 스크립트 추가: `scripts/build_lambda.sh`
+- 배포 가이드 통합(`README_LAMBDA.md` → `README.md`)
 - `lambda.zip` 빌드 검증(약 22MB)
-- 변경사항 `woo` 브랜치에 커밋/푸시 완료
- - echo 응답 스키마 표준화: `{ "echo": "..." }`로 코드/문서 동기화
- - CORS 환경 변수 도입: `ALLOWED_ORIGINS`(쉼표 구분)로 운영 오리진 제한 가능
- - CI 워크플로 추가: `.github/workflows/build-lambda.yml`(수동 실행, 빌드만: `lambda.zip` 아티팩트 업로드, 배포 자동화 금지)
+- echo 응답 스키마 표준화: `{ "echo": "..." }`
+- CORS 운영 설정 도입: `ALLOWED_ORIGINS`(쉼표 구분)
+- 환경변수 템플릿 추가: `.env.example`(PORT, ALLOWED_ORIGINS)
+- CI(workflow_dispatch) 추가: 빌드만 수행, `lambda.zip` 아티팩트 업로드(배포 자동화 금지)
 
 ## 남은 태스크
 - 운영 CORS 제한(허용 오리진/메서드 구체화)
- - Lambda 환경변수에 `ALLOWED_ORIGINS` 운영값 설정 및 검증
-- API Gateway HTTP API 설정 고도화(커스텀 도메인/스테이지/로깅)
-- IaC 도입(SAM/CloudFormation/CDK)으로 배포 자동화
+- Lambda 환경변수 `ALLOWED_ORIGINS` 운영값 설정 및 검증
+- API Gateway HTTP API 고도화(커스텀 도메인/스테이지/로깅)
+- IaC 도입(SAM/CloudFormation/CDK)으로 배포 자동화(규정 허용 시)
 - CI 확장: 테스트/린트/보안 스캔 및 커버리지 ≥ 80%, 아티팩트 보존
 - 의존성 버전 고정 및 보안 스캔(pip-tools/Dependabot)
-- 관측성: 구조화 로그/메트릭/트레이싱 추가(OpenTelemetry 등)
+- 관측성: 구조화 로그/메트릭/트레이싱(OpenTelemetry 등)
 - 에러 처리/입력 검증 보강(보안 가드레일 강화)
- - 환경 변수/비밀값 관리 표준화(SSM Parameter Store / Secrets Manager)
+- 환경 변수/비밀값 관리 표준화(SSM Parameter Store / Secrets Manager)
