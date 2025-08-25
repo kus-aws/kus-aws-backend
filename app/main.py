@@ -5,7 +5,7 @@ import os
 
 app = FastAPI(title="kus-aws-backend")
 
-# 초기 데모용 CORS: 운영 시 특정 오리진으로 제한 필요
+# 초기 데모용 CORS: 운영 시 Amplify 도메인(예: https://<amplify-domain>)만 허용하도록 제한 필요
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

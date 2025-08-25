@@ -60,6 +60,12 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
   - `GET http://localhost:8000/health` → `{ "status": "ok" }`
   - `GET http://localhost:8000/api/v1/echo?q=hello` → `{ "echo": "hello" }`
 
+### Remote Healthcheck
+- API Gateway(HTTP API) 생성 후 Invoke URL 예시:
+  - 스테이지 `$default`: `https://<api-id>.execute-api.us-east-1.amazonaws.com/health`
+  - 스테이지 `prod`: `https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/health`
+- 주의: 스테이지에 따라 경로 접두가 다릅니다(`$default`는 없음, `prod`는 `/prod`).
+
 ### Lambda 패키지 빌드
 - venv 의존 없이 원샷 빌드:
 ```bash
@@ -88,6 +94,14 @@ chmod +x scripts/build_lambda.sh
 1. Add trigger → API Gateway → Create an API → HTTP API (not REST)
 2. Security: `Open`(데모) 또는 필요한 인증 구성
 3. CORS: 기본값 활성화(데모). 운영 환경에서는 허용 오리진을 제한하세요.
+
+### 콘솔 수동 배포(해커톤 규정)
+1. 위 "Lambda 패키지 빌드"로 생성된 `lambda.zip` 업로드
+2. 런타임: Python 3.10, 핸들러: `app.main.handler`
+3. 역할(Role): `SafeRoleForUser-{username}` 선택
+4. 트리거: API Gateway(HTTP API) 추가, 라우트 `/health`, `/api/v1/echo` 자동 연결 확인
+5. CORS: 데모는 `*` 허용, 운영은 Amplify 도메인만 허용하도록 수정
+6. 배포 후 Invoke URL로 원격 헬스체크 수행(스테이지 경로 주의)
 
 ### 보안/운영 메모
 - Mangum 핸들러: `handler = Mangum(app)`
