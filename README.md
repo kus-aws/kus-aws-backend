@@ -122,10 +122,11 @@ chmod +x scripts/build_lambda.sh
 - 변경사항 `woo` 브랜치에 커밋/푸시 완료
  - echo 응답 스키마 표준화: `{ "echo": "..." }`로 코드/문서 동기화
  - CORS 환경 변수 도입: `ALLOWED_ORIGINS`(쉼표 구분)로 운영 오리진 제한 가능
- - CI 워크플로 추가: `.github/workflows/build-lambda.yml`(수동 실행으로 `lambda.zip` 아티팩트 업로드)
+ - CI 워크플로 추가: `.github/workflows/build-lambda.yml`(수동 실행, 빌드만: `lambda.zip` 아티팩트 업로드, 배포 자동화 금지)
 
 ## 남은 태스크
 - 운영 CORS 제한(허용 오리진/메서드 구체화)
+ - Lambda 환경변수에 `ALLOWED_ORIGINS` 운영값 설정 및 검증
 - API Gateway HTTP API 설정 고도화(커스텀 도메인/스테이지/로깅)
 - IaC 도입(SAM/CloudFormation/CDK)으로 배포 자동화
 - CI 확장: 테스트/린트/보안 스캔 및 커버리지 ≥ 80%, 아티팩트 보존
