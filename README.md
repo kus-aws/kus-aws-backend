@@ -190,6 +190,16 @@ chmod +x scripts/build_lambda.sh
 - 해커톤 규정상 자동 배포 금지 → GitHub Actions는 테스트/빌드(아티팩트 업로드)까지만 수행
 - 비밀정보는 코드에 포함 금지 → 환경 변수 혹은 AWS Systems Manager Parameter Store/Secrets Manager 사용
 
+## 내가 해야 할 일(체크리스트)
+- [ ] 리전 `us-east-1` 확인
+- [ ] Lambda 함수 생성: Runtime `Python 3.10`, Handler `app.main.handler`, Role `SafeRoleForUser-{username}`
+- [ ] 코드 업로드: 리포지토리 루트의 `lambda.zip` 업로드 후 Deploy
+- [ ] 환경 변수 설정: `ALLOWED_ORIGINS=https://<your-amplify-domain>` (옵션: `ALLOWED_METHODS`, `ALLOWED_HEADERS`)
+- [ ] API Gateway(HTTP API) 트리거 추가, 라우트 `/health`, `/api/v1/echo` 연결
+- [ ] CORS 운영 제한: 허용 오리진을 Amplify 도메인으로 설정
+- [ ] 원격 헬스체크: `$default` → `/health`, `prod` → `/prod/health` 경로로 200 응답 확인
+- [ ] (선택) GitHub Actions `test-and-build` 수동 실행하여 테스트/빌드 검증
+
 ## 진행 상황
 - FastAPI + Mangum 핸들러 노출(`app.main.handler`)
 - `GET /health` JSON 응답: `{ "status":"ok" }`
