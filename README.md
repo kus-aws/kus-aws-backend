@@ -19,7 +19,10 @@ pip install -r requirements.txt
 ```
 
 3) 환경 변수 설정
-- `.env.example`를 복사하여 `.env` 생성 (예: `PORT=8000`)
+- `.env.example`를 복사하여 `.env` 생성
+- 주요 키
+  - `PORT`: 개발 서버 포트 (예: `8000`)
+  - `ALLOWED_ORIGINS`: 운영/스테이징 허용 오리진(쉼표 구분, 예: `https://app.example.com,https://admin.example.com`)
 
 4) 개발 서버 실행
 ```
