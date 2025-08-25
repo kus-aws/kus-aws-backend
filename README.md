@@ -23,6 +23,8 @@ pip install -r requirements.txt
 - 주요 키
   - `PORT`: 개발 서버 포트 (예: `8000`)
   - `ALLOWED_ORIGINS`: 운영/스테이징 허용 오리진(쉼표 구분, 예: `https://app.example.com,https://admin.example.com`)
+  - `ALLOWED_METHODS`(옵션): 허용 메서드(쉼표 구분, 기본 `*`)
+  - `ALLOWED_HEADERS`(옵션): 허용 헤더(쉼표 구분, 기본 `*`)
 
 4) 개발 서버 실행
 ```
