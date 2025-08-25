@@ -1,4 +1,5 @@
-fastapi
-uvicorn[standard]
 boto3
+fastapi
+mangum
 python-dotenv
+uvicorn[standard]
