@@ -114,8 +114,21 @@ chmod +x scripts/build_lambda.sh
 - 비밀정보는 코드에 포함하지 말고, 환경 변수/Parameter Store/Secrets Manager를 사용하세요.
 
 ## CI (옵션)
-- GitHub Actions 수동 실행(`workflow_dispatch`): `.github/workflows/build-lambda.yml`
-- 작업: Python 3.10 설정 → `scripts/build_lambda.sh` 실행 → `lambda.zip` 아티팩트 업로드
+- GitHub Actions 수동 실행(`workflow_dispatch`)
+  - 테스트+빌드: `.github/workflows/test-and-build.yml` (pytest 실행 후 `lambda.zip` 아티팩트 업로드)
+  - 빌드만: `.github/workflows/build-lambda.yml`
+  - 규정: 빌드/검증만 수행, 배포 자동화 금지
+
+## 운영 체크리스트(콘솔)
+1. Lambda(us-east-1) 생성 → Runtime Python 3.10, Handler `app.main.handler`, Role `SafeRoleForUser-{username}`
+2. 환경 변수 설정
+   - `ALLOWED_ORIGINS`: 운영 도메인(쉼표 구분). 예) `https://app.example.com`
+   - 필요 시 `ALLOWED_METHODS`, `ALLOWED_HEADERS` 지정
+3. API Gateway(HTTP API) 트리거 추가 → 라우트 `/health`, `/api/v1/echo`
+4. 스테이지 확인 및 원격 헬스체크
+   - `$default`: `.../health`
+   - `prod`: `.../prod/health`
+5. CORS: 데모 `*`, 운영은 Amplify 도메인만 허용
 
 ## 진행 상황
 - FastAPI + Mangum 핸들러 노출(`app.main.handler`)
