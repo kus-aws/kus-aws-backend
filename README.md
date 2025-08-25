@@ -93,3 +93,21 @@ chmod +x scripts/build_lambda.sh
 - Mangum 핸들러: `handler = Mangum(app)`
 - 현재 CORS는 데모 목적상 `*` 허용. 운영 환경에서는 제한 필요.
 - 비밀정보는 코드에 포함하지 말고, 환경 변수/Parameter Store/Secrets Manager를 사용하세요.
+
+## 진행 상황
+- FastAPI 앱에 Mangum 핸들러 노출(`app.main.handler`)
+- `GET /health` JSON 응답으로 변경: `{ "status":"ok" }`
+- `requirements.txt`에 `mangum` 추가 및 정렬
+- Lambda 패키징 스크립트 추가: `scripts/build_lambda.sh`
+- Lambda 배포 가이드 본문에 통합(`README_LAMBDA.md` → `README.md`)
+- `lambda.zip` 빌드 검증(약 22MB)
+- 변경사항 `woo` 브랜치에 커밋/푸시 완료
+
+## 남은 태스크
+- 운영 CORS 제한(허용 오리진/메서드 구체화)
+- API Gateway HTTP API 설정 고도화(커스텀 도메인/스테이지/로깅)
+- IaC 도입(SAM/CloudFormation/CDK)으로 배포 자동화
+- CI/CD 파이프라인(GitHub Actions) 추가 및 테스트 커버리지 ≥ 80%
+- 의존성 버전 고정 및 보안 스캔(pip-tools/Dependabot)
+- 관측성: 구조화 로그/메트릭/트레이싱 추가(OpenTelemetry 등)
+- 에러 처리/입력 검증 보강(보안 가드레일 강화)
