@@ -45,7 +45,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS: 데모 기본값(*), 운영은 특정 도메인으로 제한 권장
+# CORS: 데모 기본값(*)
 origins_env = os.getenv("CORS_ORIGINS", "*")
 allow_origins = [o.strip() for o in origins_env.split(",") if o.strip()]
 allow_credentials = os.getenv("CORS_ALLOW_CREDENTIALS", "false").lower() == "true"
@@ -249,4 +249,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
