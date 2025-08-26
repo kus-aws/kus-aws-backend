@@ -15,7 +15,7 @@ from mangum import Mangum
 import boto3
 
 # -------------------------------------------------
-# 환경 변수 로드 (.env 로컬 개발용)
+
 
 load_dotenv()
 
@@ -249,3 +249,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
