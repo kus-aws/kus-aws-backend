@@ -68,7 +68,7 @@ app.get("/api/v1/ask", async (req, res) => {
 
   try {
     connection = await pool.getConnection();
-    
+
     // 1. 데이터베이스에서 답변 찾기
     const [rows] = await connection.execute(
       "SELECT answer FROM faqs WHERE question = ?",
@@ -98,11 +98,11 @@ app.get("/api/v1/ask", async (req, res) => {
       aiAnswer = completion.choices[0].message.content;
     }
 
-    // ✅ 추가된 부분: conversations 테이블에 대화 기록 저장
-    const userId = 'test-user'; // 현재는 임의의 사용자 ID 사용
+    // conversations 테이블에 대화 기록 저장
+    const userId = 'test-user'; 
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    const insertQuery = "INSERT INTO conversations (user_id, message, timestamp) VALUES (?, ?)";
-    await connection.execute(insertQuery, [userId, `질문: ${userQuestion}\n답변: ${aiAnswer}`]);
+    const insertQuery = "INSERT INTO conversations (user_id, message, timestamp) VALUES (?, ?, ?)";
+    await connection.execute(insertQuery, [userId, `질문: ${userQuestion}\n답변: ${aiAnswer}`, timestamp]);
 
     // 최종 응답 반환
     res.json({ answer: aiAnswer });
