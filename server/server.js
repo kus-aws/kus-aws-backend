@@ -57,6 +57,7 @@ const initDatabase = async () => {
 
 app.get("/api/v1/ask", async (req, res) => {
   const userQuestion = req.query.q;
+  const userId = 'test-user'; // 현재는 임의의 사용자 ID 사용
   console.log(`사용자 질문: ${userQuestion}`);
 
   if (!userQuestion) {
@@ -70,36 +71,50 @@ app.get("/api/v1/ask", async (req, res) => {
     connection = await pool.getConnection();
 
     // 1. 데이터베이스에서 답변 찾기
-    const [rows] = await connection.execute(
+    const [faqsRows] = await connection.execute(
       "SELECT answer FROM faqs WHERE question = ?",
       [userQuestion]
     );
 
-    if (rows.length > 0) {
-      // 데이터베이스에 답변이 있는 경우
-      aiAnswer = rows[0].answer;
+    if (faqsRows.length > 0) {
+      // ✅ 데이터베이스에 답변이 있는 경우
+      aiAnswer = faqsRows[0].answer;
     } else {
-      // 데이터베이스에 답변이 없는 경우, OpenAI API 호출
+      // ✅ 데이터베이스에 답변이 없는 경우, OpenAI API 호출
       console.log("데이터베이스에 답변이 없어 OpenAI 호출");
-      const completion = await openai.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant that answers questions about AWS in Korean. Your response should be friendly and easy to understand."
-          },
-          {
-            role: "user",
-            content: userQuestion
+
+      // 1-1. conversations 테이블에서 대화 기록 불러오기
+      const [chatHistory] = await connection.execute(
+          "SELECT message FROM conversations WHERE user_id = ? ORDER BY timestamp ASC",
+          [userId]
+      );
+      
+      const messages = [{
+          role: "system",
+          content: "You are a helpful assistant that answers questions about AWS in Korean. Your response should be friendly and easy to understand."
+      }];
+
+      // 1-2. 불러온 대화 기록을 OpenAI 메시지 형식으로 변환
+      chatHistory.forEach(row => {
+          // 메시지가 '질문: ...' 형식으로 저장되므로 질문과 답변을 분리
+          const parts = row.message.split('\n답변: ');
+          if (parts.length === 2) {
+              messages.push({ role: 'user', content: parts[0].replace('질문: ', '') });
+              messages.push({ role: 'assistant', content: parts[1] });
           }
-        ],
+      });
+      // 1-3. 마지막으로 사용자의 새 질문 추가
+      messages.push({ role: 'user', content: userQuestion });
+
+      const completion = await openai.chat.completions.create({
+        messages: messages, // ✅ 대화 기록을 포함한 메시지 배열 전달
         model: "gpt-3.5-turbo",
         max_tokens: 500
       });
       aiAnswer = completion.choices[0].message.content;
     }
 
-    // conversations 테이블에 대화 기록 저장
-    const userId = 'test-user'; 
+    // ✅ 대화 기록 테이블에 질문과 답변 저장
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
     const insertQuery = "INSERT INTO conversations (user_id, message, timestamp) VALUES (?, ?, ?)";
     await connection.execute(insertQuery, [userId, `질문: ${userQuestion}\n답변: ${aiAnswer}`, timestamp]);
