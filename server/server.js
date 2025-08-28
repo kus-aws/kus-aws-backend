@@ -17,7 +17,7 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT || 3306
 });
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); 
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const initDatabase = async () => {
   try {
@@ -63,16 +63,23 @@ app.get("/api/v1/ask", async (req, res) => {
     return res.status(400).json({ error: "질문을 입력해주세요." });
   }
 
+  let aiAnswer;
+  let connection;
+
   try {
+    connection = await pool.getConnection();
+    
     // 1. 데이터베이스에서 답변 찾기
-    const [rows] = await pool.execute(
+    const [rows] = await connection.execute(
       "SELECT answer FROM faqs WHERE question = ?",
       [userQuestion]
     );
 
     if (rows.length > 0) {
-      return res.json({ answer: rows[0].answer });
+      // 데이터베이스에 답변이 있는 경우
+      aiAnswer = rows[0].answer;
     } else {
+      // 데이터베이스에 답변이 없는 경우, OpenAI API 호출
       console.log("데이터베이스에 답변이 없어 OpenAI 호출");
       const completion = await openai.chat.completions.create({
         messages: [
@@ -88,13 +95,25 @@ app.get("/api/v1/ask", async (req, res) => {
         model: "gpt-3.5-turbo",
         max_tokens: 500
       });
-      const aiAnswer = completion.choices[0].message.content;
-
-      return res.json({ answer: aiAnswer });
+      aiAnswer = completion.choices[0].message.content;
     }
+
+    // ✅ 추가된 부분: conversations 테이블에 대화 기록 저장
+    const userId = 'test-user'; // 현재는 임의의 사용자 ID 사용
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const insertQuery = "INSERT INTO conversations (user_id, message, timestamp) VALUES (?, ?)";
+    await connection.execute(insertQuery, [userId, `질문: ${userQuestion}\n답변: ${aiAnswer}`]);
+
+    // 최종 응답 반환
+    res.json({ answer: aiAnswer });
+
   } catch (err) {
     console.error("서버 오류:", err);
     res.status(500).json({ error: "서버 오류가 발생했습니다." });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 });
 
