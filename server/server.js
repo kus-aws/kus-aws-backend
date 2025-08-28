@@ -2,6 +2,7 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const OpenAI = require("openai");
 
 dotenv.config();
 const app = express();
@@ -15,6 +16,8 @@ const pool = mysql.createPool({
   database: process.env.DB_DATABASE,
   port: process.env.DB_PORT || 3306
 });
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); 
 
 const initDatabase = async () => {
   try {
@@ -61,18 +64,36 @@ app.get("/api/v1/ask", async (req, res) => {
   }
 
   try {
+    // 1. 데이터베이스에서 답변 찾기
     const [rows] = await pool.execute(
       "SELECT answer FROM faqs WHERE question = ?",
       [userQuestion]
     );
 
     if (rows.length > 0) {
-      res.json({ answer: rows[0].answer });
+      return res.json({ answer: rows[0].answer });
     } else {
-      res.status(404).json({ error: "해당 질문에 대한 답변을 찾을 수 없습니다." });
+      console.log("데이터베이스에 답변이 없어 OpenAI 호출");
+      const completion = await openai.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant that answers questions about AWS in Korean. Your response should be friendly and easy to understand."
+          },
+          {
+            role: "user",
+            content: userQuestion
+          }
+        ],
+        model: "gpt-3.5-turbo",
+        max_tokens: 500
+      });
+      const aiAnswer = completion.choices[0].message.content;
+
+      return res.json({ answer: aiAnswer });
     }
   } catch (err) {
-    console.error("데이터베이스 쿼리 오류:", err);
+    console.error("서버 오류:", err);
     res.status(500).json({ error: "서버 오류가 발생했습니다." });
   }
 });
