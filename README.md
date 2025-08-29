@@ -211,11 +211,18 @@ chmod +x scripts/build_lambda.sh
 - CORS 운영 설정 도입: `ALLOWED_ORIGINS`(쉼표 구분)
 - 환경변수 템플릿 추가: `.env.example`(PORT, ALLOWED_ORIGINS)
 - CI(workflow_dispatch) 추가: 빌드만 수행, `lambda.zip` 아티팩트 업로드(배포 자동화 금지)
+- **NEW**: AI 대화 기능 구현 및 대화 이력 저장
+- **NEW**: Node.js 기반 데이터베이스 구축 및 연동
+- **NEW**: OpenAI API 설정 완료
+- **NEW**: 대화 중 이전 대화 기억 기능 구현
 
 ## 남은 태스크
 - 운영 CORS 제한(허용 오리진/메서드 구체화)
 - Lambda 환경변수 `ALLOWED_ORIGINS` 운영값 설정 및 검증
 - API Gateway HTTP API 고도화(커스텀 도메인/스테이지/로깅)
+- AI 대화 API 엔드포인트 문서화 및 스키마 정의
+- 데이터베이스 연결 풀링 및 성능 최적화
+- 대화 이력 관리 API (조회/삭제) 구현
 - IaC 도입(SAM/CloudFormation/CDK)으로 배포 자동화(규정 허용 시)
 - CI 확장: 테스트/린트/보안 스캔 및 커버리지 ≥ 80%, 아티팩트 보존
 - 의존성 버전 고정 및 보안 스캔(pip-tools/Dependabot)
